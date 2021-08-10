@@ -7,9 +7,11 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +19,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -34,8 +35,9 @@ public class CategoriaController {
 	CategoriaRepository categoriaRepository;
 
 	@GetMapping("/categorias")
-	public Page<CategoriaDto> listCategoria(@RequestParam int page) {
-		Pageable paginacao = PageRequest.of(page, 5);
+	@Cacheable(value = "listaDeCategorias")
+	public Page<CategoriaDto> listCategoria(@PageableDefault(size = 5) Pageable paginacao) {
+		//Pageable paginacao = PageRequest.of(page, 5);
 
 		Page<Categoria> categorias = categoriaRepository.findAll(paginacao);
 		return CategoriaDto.converter(categorias);
@@ -53,6 +55,7 @@ public class CategoriaController {
 
 	@PostMapping("/categorias")
 	@Transactional
+	@CacheEvict(value = "listaDeCategorias", allEntries = true)
 	public ResponseEntity<CategoriaDto> addCategoria(@Valid @RequestBody CategoriaForm categoriaform, UriComponentsBuilder uriBuilder) {
 		Categoria categoria = categoriaform.converter();
 		categoriaRepository.save(categoria);
@@ -63,6 +66,7 @@ public class CategoriaController {
 	
 	@DeleteMapping("/categorias/{id}")
 	@Transactional
+	@CacheEvict(value = "listaDeCategorias", allEntries = true)
 	public ResponseEntity<?> deleteCategoria(@PathVariable Long id) {
 		Optional<Categoria> optionalCategoria = categoriaRepository.findById(id);
 
@@ -75,6 +79,7 @@ public class CategoriaController {
 
 	@PutMapping("/categorias/{id}")
 	@Transactional
+	@CacheEvict(value = "listaDeCategorias", allEntries = true)
 	public ResponseEntity<CategoriaDto> updateCategoria(@PathVariable Long id,
 			@Valid @RequestBody AtualizaCategoriaForm atualizaCategoriaForm) {
 		Optional<Categoria> optionalCategoria = categoriaRepository.findById(id);

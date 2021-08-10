@@ -45,6 +45,14 @@ public class VideosController {
 		Page<Video> videos = videoRepository.findAll(paginacao);
 		return VideoDto.converter(videos);
 	}
+	
+	@GetMapping("/videos/free")
+	public Page<VideoDto> listVideosFree() {
+		Pageable paginacao = PageRequest.of(0, 5);
+		
+		Page<Video> videos = videoRepository.findAll(paginacao);
+		return VideoDto.converter(videos);
+	}
 
 	@GetMapping("/videos/")
 	public List<VideoDto> searchVideos(@RequestParam String search) {
